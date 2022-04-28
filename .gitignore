@@ -1,0 +1,14 @@
+src/.env
+src/.env/**
+src/config/list-matkul.json
+src/config/user.json
+src/config/urls.json
+src/crontab
+src/tes.py
+src/botpresensi/model
+
+**/__pycache__
+*/__pycache__
+**/__pycache__/**
+*/__pycache__/**
+

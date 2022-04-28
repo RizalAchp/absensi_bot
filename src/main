@@ -1,0 +1,57 @@
+#!/home/rizal/Programming/Python/myenv/bin/python3
+import argparse
+import asyncio
+import os
+from botpresensi.gui import start_gui
+from botpresensi.bot import startwithcli
+from botpresensi.bot import startCronjob, setupbot
+from botpresensi.data.data import ERROR, LOG
+
+
+def setting_parser():
+    _parser = argparse.ArgumentParser(
+        'botpresent',
+        '%(prog)s [-h, --help, arguments]',
+        'Bot Scraping Pada JTI POLIJE menggunakan python',
+        'by: Rizal Achmad Pahlevi',
+        add_help=True,
+        exit_on_error=True
+    )
+    _parser.add_argument(
+        'argument',
+        action='store',
+        nargs='?',
+        metavar=("argument:\n\n"
+                 "\tstart     -> starting the bot(cli mode)\n"
+                 "\tgui       -> start bot(gui mode)\n"
+                 "\tcron      -> set cronjob\n"
+                 "\tsetup     -> set user,link,etc..\n"
+                 )
+    )
+
+    args = _parser.parse_args()
+    if args.argument is None:
+        return _parser.print_help()
+    return args.argument
+
+
+def main(args: str):
+    match args:
+        case 'start':
+            return asyncio.run(startwithcli())
+        case 'gui':
+            return asyncio.run(start_gui())
+        case 'cron':
+            return asyncio.run(startCronjob())
+        case 'setup':
+            return asyncio.run(setupbot())
+        case default:
+            return None
+
+
+if __name__ == "__main__":
+    if os.name == 'nt':
+        LOG("Script Tidak Dapat dijalankan di Windows! hanya dapat dijalankan di linux!", logmode=ERROR)
+        raise SystemExit()
+    cli = setting_parser()
+    main(cli)

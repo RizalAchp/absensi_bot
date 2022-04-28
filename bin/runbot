@@ -1,0 +1,13 @@
+#!/usr/bin/bash
+
+PYTHON=/usr/bin/python3
+ABSPATHBOT="$(dirname -- "$(readlink -f "${BASH_SOURCE}")")"
+MYBOTPRESEN="$ABSPATHBOT/botpresent"
+IPADDR='8.8.8.8' # Google's public DNS server
+
+function runthebot(){
+    cd $ABSPATHBOT && $PYTHON $MYBOTPRESEN start
+}
+[[ -z `ping -c1 $IPADDR |& grep -o 'Network is unreachable'` ]] || echo "Network is unreachable"
+[[ -z `ping -c3 $IPADDR |& grep -o '100% packet loss'` ]] && runthebot || echo "packet loss"
+

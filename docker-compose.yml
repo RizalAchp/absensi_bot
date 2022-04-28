@@ -1,0 +1,12 @@
+version: '3'
+
+services:
+  botpresensi:
+    container_name: BotPresensiJTI
+    stdin_open: true
+    tty: true
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes: 
+      - .:/usr/src/bot
