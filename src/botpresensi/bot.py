@@ -1,10 +1,8 @@
 import asyncio
-import os
 import re
-
 import aiohttp
+
 from bs4 import BeautifulSoup
-from bs4.element import Tag
 
 from botpresensi import (
     ERROR, INFO, LOG, URL_COURSES,
@@ -91,29 +89,42 @@ class Bot():
     @mytimer
     async def bot_absen(self):
         """bot_absen. """
-        _link = await self.bot_check_absen()
+        payload_absen = {
+            "_qf_mod_attendance_student_attendance_form": 1,
+            "mform_isexpanded_id_session": 1,
+            "submitbutton": "Save changes"
+        }
+        _link = await self.bot_check_absen_link()
         if _link:
             for link in _link:
+                _ln, _dt = self.striplink(link)
+                payload_absen["sessid"] = self.get_sessid(_dt)
+                payload_absen["sesskey"] = self.get_sesskey(_dt)
                 async with self.sesn.get(link) as resp:
                     html = await resp.text()
-                    # TODO!
-                    for result in BeautifulSoup(html, "html.parser").find_all(
-                        'td', text=re.compile("^Submit.*dance.*")
-                    ):
-                        # ada linknnya ? masih belum tau :v, TODO!
-                        presensi = result.get("href") 
-                        if presensi is not None:
-                            # mau ngapain ? masih gk tau :v, TODO!
-                            pass
+                    payload_absen["status"] = self.get_status(html)
+
+                async with self.sesn.post(_ln, data=payload_absen) as resp:
+                    pass
             return True
         return False
 
     @mytimer
-    async def bot_check_absen(self) -> list[str] | None:
+    async def bot_check_absen_link(self) -> list[str] | None:
         """bot_check_absen."""
         _data = MatkulSetting().get_link_from_date(datetime.now())
+        data = []
         if _data:
-            return [_v.link for _v in _data]
+            for _v in _data:
+                async with self.sesn.get(_v.link) as resp:
+                    html = await resp.text()
+                    for result in BeautifulSoup(
+                        html, "html.parser"
+                    ).find_all('a', text=re.compile("^Submi.*dance.*")):
+                        data.append(result.get('href'))
+
+            return data
+        return None
 
     @mytimer
     async def bot_settingdata(self, _data: dict[str, list]) -> None:
@@ -240,6 +251,32 @@ class Bot():
             html, "html.parser"
         ).find('input', attrs={'name': 'logintoken'})
         return token.get('value').strip()
+
+    @staticmethod
+    def striplink(link: str):
+        _d = link.split("?")
+        return (_d[0], _d[1])
+
+    @staticmethod
+    def get_sessid(link: str) -> str:
+        data = re.search("sessid=([0-9a-zA-Z]+)&?", link)
+        if data:
+            return str(data.group(1))
+        return ""
+
+    @staticmethod
+    def get_sesskey(link: str) -> str:
+        data = re.search("sesskey=([0-9a-zA-Z]+)&?", link)
+        if data:
+            return str(data.group(1))
+        return ""
+
+    @staticmethod
+    def get_status(html: str) -> str:
+        elem = BeautifulSoup(
+            html, "html.parser"
+        ).find('input', attrs={'name': 'status'})
+        return elem.get('value').strip()
 
 
 @mytimer

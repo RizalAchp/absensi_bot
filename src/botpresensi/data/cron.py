@@ -6,8 +6,8 @@ class Cron:
     ENCODING = "utf-8"
 
     def __init__(self) -> None:
-        self.COMMAND = os.path.abspath("runbot")
-        self.FILENAME = os.path.abspath("jobs.tab")
+        self.COMMAND = os.path.abspath("bin/runbot")
+        self.FILENAME = os.path.abspath("src/crontab")
         self.date = []
 
     def write(self):
@@ -41,4 +41,3 @@ if __name__ == "__main__":
     print("Mon 14 Feb 2022 1PM - 3PM")
     print(data)
     print(cron._parse_cron(data))
-

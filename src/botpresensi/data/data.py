@@ -1,4 +1,5 @@
 import json
+import re
 import time
 from datetime import datetime
 from json.decoder import JSONDecodeError
@@ -16,8 +17,8 @@ URL_COURSES = "http://jti.polije.ac.id/elearning/course/index.php?categoryid=3"
 # HEADERS = {
 #     "User-Agent": ("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.87 Safari/537.36")
 # }
-SETTING_MATKUL = path.abspath("config/list-matkul.json")
-SETTING_USER = path.abspath("config/user.json")
+SETTING_MATKUL = path.abspath("src/config/list-matkul.json")
+SETTING_USER = path.abspath("src/config/user.json")
 ERROR = 1
 WARNING = 2
 INFO = 3
@@ -27,6 +28,14 @@ W_MODE = f"{Fore.BLACK}{Back.YELLOW}{Style.BRIGHT}[WARNING]:{Back.RESET}{Fore.YE
 I_MODE = f"{Fore.BLACK}{Back.GREEN}{Style.BRIGHT}[INFO]:{Back.RESET}{Fore.GREEN}"
 T_MODE = f"{Fore.BLACK}{Back.CYAN}{Style.BRIGHT}[TIMER]:{Back.RESET}{Fore.CYAN}"
 N_MODE = f"{Fore.LIGHTGREEN_EX}{Style.DIM}"
+
+
+def parse_date(_date: str | datetime):
+    if isinstance(_date, datetime):
+        return _date.strftime('%a %d %b %Y %-I%p')
+    return datetime.strptime(
+        _date.split(' - ')[0], '%a %d %b %Y %I%p'
+    )
 
 
 def LOG(*val: object,
@@ -113,14 +122,27 @@ class MatkulSetting(TheJson):
 
     def get_link_from_date(self, name: datetime):
         return [
-            Absensi(key, val, _link)
+            Absensi(key, _tgl, _link)
             for key, val in self.m_read().items()
-            for _link in val
-            if name.strftime('%a %-I%p') in key
+            for _tgl, _link in val.items()
+            if re.search(f"^{parse_date(name)}.*", _link)
+            is not None
         ]
+
+    def delete_link_done(self, _absn: Absensi):
+        for key, val in self.m_read().items():
+            for _k, _v in val.items():
+                if key in _absn.name and _k in _absn.tgl:
+                    continue
+                self.thedata[key][_k] = _v
+
+        return self.submit_matkul()
 
     def add_matkul(self, name: str, lt: dict):
         self.thedata[name] = lt
+
+    def submit_matkul(self):
+        return self.m_write(self.thedata)
 
     @property
     def data(self):
@@ -129,9 +151,6 @@ class MatkulSetting(TheJson):
     @data.setter
     def data(self, data: dict):
         self.thedata = data
-
-    def submit_matkul(self):
-        return self.m_write(self.thedata)
 
 
 class CredSetting(TheJson):
@@ -163,13 +182,13 @@ class CredSetting(TheJson):
             LOG(None, "===============")
             for i in self.PRODI:
                 LOG(None, i)
-            LOG(None, "\nKetikkan Prodi, Usahakan Sama Dengan List Diatas")
-            LOG(None, "eg: not case sensitive")
-            prodi = input("     prodi: ")
-            LOG(None, "\nMasukkan juga golongan anda:")
-            gol = input("   golongan: ")
-            LOG(None, "\nMasukkan juga semester tempuh anda:")
-            smstr = input("   semester: ")
+            LOG(None, "\nKetikkan Prodi, Usahakan Sama Dengan List Diatas..")
+            LOG(None, "`eg: not case sensitive`")
+            prodi = input("\tprodi\t: ")
+            LOG(None, "\nMasukkan juga golongan anda..")
+            gol = input("\tgol\t: ")
+            LOG(None, "\nMasukkan juga semester tempuh anda..")
+            smstr = input("\tsmster\t: ")
 
             self.add(Credentials(
                 nim.lower(), pswd, prodi.lower(), gol.upper(), smstr
@@ -200,11 +219,11 @@ class DataGui():
         :rtype: None
         """
         self.cred = CredSetting()
-        self.mktl = MatkulSetting()
+        mktl = MatkulSetting()
         try:
-            __mtkl = self.mktl.data
             self._creds = self.cred.get()
-            self._matkul = [DataMatkul(_d, _k) for _d, _k in __mtkl.items()]
+            self._matkul = [DataMatkul(_d, _k)
+                            for _d, _k in mktl.data.items()]
         except JSONDecodeError:
             return None
 
@@ -259,16 +278,24 @@ class CompGui:
 
 
 if __name__ == "__main__":
-    LOG("INI ERROR COK", logmode=ERROR)
-    LOG("INI WARNING COK", logmode=WARNING)
-    LOG("INI INFO COK", logmode=INFO)
-    LOG("INI DEFAULT COK")
-    # matkul = MatkulSetting()
-    # date = "Mon 1PM"
-    # datas = datetime.strptime(date, "%a %I%p")
-    # d = matkul.get_link_from_date(datas)
-    # print(d)
+    # LOG("INI ERROR COK", logmode=ERROR)
+    # LOG("INI WARNING COK", logmode=WARNING)
+    # LOG("INI INFO COK", logmode=INFO)
+    # LOG("INI DEFAULT COK")
+    matkul = MatkulSetting()
+    # date = "Mon 14 Feb 2022 1PM"
+
+    # dd = parse_date(date)
+    # if isinstance(dd, datetime):
+    d = matkul.get_link_from_date(datetime.now())
+    if d:
+        for _d in d:
+            print(_d.link)
+    else:
+        print("None")
+
     # if d:
-    #     print("ada")
+    #     for _d in d:
+    #         print(_d.name)
     # else:
-    #     print("kososng")
+    #     print("tidak ada")
