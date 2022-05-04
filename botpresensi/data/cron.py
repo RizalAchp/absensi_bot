@@ -1,21 +1,27 @@
 from datetime import datetime
-import os
 
 
 class Cron:
-    ENCODING = "utf-8"
+    FIRST = [
+        'SHELL=/bin/bash\n',
+        'PATH=/sbin:/bin:/usr/sbin:/usr/bin\n',
+        'MAILTO=""\n'
+    ]
+    COMMAND = "root run-parts /usr/src/bot/botpresen start > /dev/null 2>&1"
+    FILENAME = "/usr/src/bot/crontab"
 
     def __init__(self) -> None:
-        self.COMMAND = os.path.abspath("bin/runbot")
-        self.FILENAME = os.path.abspath("src/crontab")
         self.date = []
 
     def write(self):
         with open(self.FILENAME, 'w') as file:
-            for _dt in self.date:
-                file.write(f"{self._parse_cron(_dt)} {self.COMMAND}\n")
-
-            file.close()
+            file.writelines(self.FIRST)
+            file.write('\n')
+            file.writelines(
+                [f"{self._parse_cron(_dt)} {self.COMMAND}\n"
+                 for _dt in self.date]
+            )
+            file.write('\n')
 
     def set_contab_list(self,  _date: list):
         if _date:

@@ -9,4 +9,4 @@ services:
       context: .
       dockerfile: Dockerfile
     volumes: 
-      - .:/usr/src/bot
+      - ./src:/usr/src/bot

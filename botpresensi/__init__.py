@@ -4,5 +4,4 @@
 
 # from botpresensi.cron import *
 from botpresensi.data import *
-from botpresensi.model import *
 # from botpresensi.wabot import *

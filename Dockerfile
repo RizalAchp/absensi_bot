@@ -9,7 +9,7 @@ WORKDIR /usr/src/bot
 COPY ./requirements.txt .
 RUN pip install --no-cache-dir -r ./requirements.txt
 
-COPY . .
-
-CMD [ "python", "-i", "./src/main", "setup" ]
-RUN crontab ./mycrontab
+COPY src/* .
+COPY bin/* /usr/bin/
+# CMD [ "python", "-i", "./main", "setup" ]
+# RUN crontab ./mycrontab

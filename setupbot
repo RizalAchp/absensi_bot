@@ -1,8 +1,8 @@
 #!/usr/bin/bash
 
 PYTHON=/usr/bin/python3
-ABSPATHBOT="$(dirname -- "$(readlink -f "${BASH_SOURCE}")")"
-MYBOTPRESEN="$ABSPATHBOT/botpresent"
+ABSPATHBOT="/usr/src/bot"
+MYBOTPRESEN="$ABSPATHBOT/src/botpresent"
 IPADDR='8.8.8.8' # Google's public DNS server
 
 function runthebot(){

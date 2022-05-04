@@ -1,11 +1,13 @@
-src/.env
-src/.env/**
-src/config/list-matkul.json
-src/config/user.json
-src/config/urls.json
-src/crontab
-src/tes.py
-src/botpresensi/model
+.env
+.env/**
+config/list-matkul.json
+config/user.json
+config/urls.json
+crontab
+tes.py
+botpresensi/model
+build
+bin
 
 **/__pycache__
 */__pycache__

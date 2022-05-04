@@ -1,11 +1,10 @@
-#!/home/rizal/Programming/Python/myenv/bin/python3
+#!/usr/local/bin/python3.10
 import argparse
 import asyncio
 import os
-from botpresensi.gui import start_gui
 from botpresensi.bot import startwithcli
 from botpresensi.bot import startCronjob, setupbot
-from botpresensi.data.data import ERROR, LOG
+from botpresensi import ERROR, LOG
 
 
 def setting_parser():
@@ -39,12 +38,14 @@ def main(args: str):
     match args:
         case 'start':
             return asyncio.run(startwithcli())
-        case 'gui':
-            return asyncio.run(start_gui())
         case 'cron':
             return asyncio.run(startCronjob())
         case 'setup':
             return asyncio.run(setupbot())
+        case 'gui':
+            raise NotImplementedError("Gui Belum Terimplementasi Sepenuhnya")
+            from botpresensi.gui import start_gui
+            return asyncio.run(start_gui())
         case default:
             return None
 

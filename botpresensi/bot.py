@@ -8,9 +8,9 @@ from botpresensi import (
     ERROR, INFO, LOG, URL_COURSES,
     URL_LOGIN, CredSetting, Cron,
     JSONDecodeError, MatkulSetting,
-    datetime, mytimer
+    datetime, mytimer, URL_DASHBOARD,
+    SETTING_MATKUL, SETTING_USER
 )
-from botpresensi.data.data import SETTING_MATKUL, SETTING_USER
 
 
 class Bot():
@@ -19,7 +19,7 @@ class Bot():
     VERSION = 1.0
     AUTHOR = "Rizal Achmad Pahlevi"
 
-    def __init__(self, session: aiohttp.ClientSession):
+    def __init__(self, session: aiohttp.ClientSession | None = None):
         """__init__.
 
         :param session:
@@ -219,7 +219,7 @@ class Bot():
         """link_matkul."""
         LOG("scraping data_url matakuliah..")
 
-        async with self.sesn.get(URL_COURSES) as resp:
+        async with self.sesn.get(URL_DASHBOARD) as resp:
             html = await resp.text()
             _data = {
                 str(e.get('href')): str(e.text) for e in BeautifulSoup(
@@ -291,42 +291,41 @@ async def set_crontab():
     return True
 
 
-async def setting_up(bot: Bot):
+async def setting_up():
     """Setting Up Bot"""
-    await bot.bot_login(True)
-    link_matkul = await bot.link_matkul()
-    linkget = await bot.bot_get_presensi_url(link_matkul)
-    if linkget:
-        await bot.bot_settingdata(linkget)
-        LOG("mendapatkan keseluruhan data", logmode=INFO)
-        isdone = await set_crontab()
-        return isdone
+    async with aiohttp.ClientSession() as sess:
+        bot = Bot(sess)
+        await bot.bot_login(True)
+        link_matkul = await bot.link_matkul()
+        linkget = await bot.bot_get_presensi_url(link_matkul)
+        if linkget:
+            await bot.bot_settingdata(linkget)
+            LOG("mendapatkan keseluruhan data", logmode=INFO)
+            isdone = await set_crontab()
+            return isdone
+        return False
 
 
 async def setupbot():
     """setupbot."""
-    global IS_DONE
     IS_DONE = False
-    async with aiohttp.ClientSession() as req:
-        bot = Bot(req)
-        if bot.status_login:
-            if bot.check_setting_bot() is False:
-                IS_DONE = await setting_up(bot)
-            else:
-                LOG("sudah melakukan setting data, jika ingin resetting..")
-                LOG(f"hapus data pada : {SETTING_MATKUL}")
-                LOG("dan jalankan kembali script setup..")
-        else:
-            cred = CredSetting()
-            cred.createNewAccount()
-            IS_DONE = await setting_up(bot)
-        await req.close()
+    bot = Bot()
+    if not bot.status_login:
+        cred = CredSetting()
+        cred.createNewAccount()
+        if not bot.check_setting_bot():
+            IS_DONE = await setting_up()
 
-    if IS_DONE:
-        LOG("SETUP SELESAI", logmode=INFO)
-        LOG("configurasi setup terdapat pada :", logmode=INFO)
-        LOG(f"  config matkul : {SETTING_MATKUL}", logmode=INFO)
-        LOG(f"  config user   : {SETTING_USER}", logmode=INFO)
+    if not IS_DONE:
+        LOG("sudah melakukan setting data, jika ingin resetting..")
+        LOG(f"hapus data pada : {SETTING_MATKUL}")
+        LOG("dan jalankan kembali script setup..")
+        return
+    LOG("SETUP SELESAI", logmode=INFO)
+    LOG("configurasi setup terdapat pada :", logmode=INFO)
+    LOG(f"  config matkul : {SETTING_MATKUL}", logmode=INFO)
+    LOG(f"  config user   : {SETTING_USER}", logmode=INFO)
+    return
 
 
 async def startwithcli():
@@ -335,23 +334,16 @@ async def startwithcli():
     IS_DONE = False
     async with aiohttp.ClientSession() as req:
         bot = Bot(req)
-        if bot.status_login:
-            await bot.bot_login()
-            if bot.check_setting_bot() is True:
-                IS_DONE = await bot.bot_absen()
-
-            else:
-                IS_DONE = await setting_up(bot)
-
-        else:
+        if not bot.status_login:
+            del bot
             cred = CredSetting()
             cred.createNewAccount()
-            IS_DONE = await setting_up(bot)
-        await req.close()
+            return await setting_up(Bot(req))
 
-    if IS_DONE:
-        LOG("ABSENSI SELESAI", logmode=INFO)
-        LOG(f"pada : {datetime.now()}", logmode=INFO)
+        await bot.bot_login()
+        if not bot.check_setting_bot():
+            return await setting_up(bot)
+        return await bot.bot_absen()
 
 
 async def startCronjob():
@@ -360,3 +352,5 @@ async def startCronjob():
 
 if __name__ == "__main__":
     asyncio.run(set_crontab())
+    LOG("ABSENSI SELESAI", logmode=INFO)
+    LOG(f"pada : {datetime.now()}", logmode=INFO)
