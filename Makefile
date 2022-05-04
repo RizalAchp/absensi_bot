@@ -4,7 +4,7 @@ all: build build_single
 
 build:
 	rm -rf ./build
-	pyinstaller --distpath ./bin ./main.spec
+	pyinstaller --distpath ./package ./main.spec
 
 build_single:
 	rm -rf ./build

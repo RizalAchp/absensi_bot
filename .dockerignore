@@ -1,11 +1,9 @@
-src/venv
+venv
 **/venv
 **/venv/**
 **/__pycache__
-
-src/config/list-matkul.json
-src/config/user.json
-src/mycrontab
-src/tes.py
-src/botpresensi/gui.py
-src/botpresensi/main.py
+config
+botpresensi/gui.py
+botpresensi/main.py
+bin
+build

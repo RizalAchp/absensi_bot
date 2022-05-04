@@ -7,8 +7,8 @@ class Cron:
         'PATH=/sbin:/bin:/usr/sbin:/usr/bin\n',
         'MAILTO=""\n'
     ]
-    COMMAND = "root run-parts /usr/src/bot/botpresen start > /dev/null 2>&1"
-    FILENAME = "/usr/src/bot/crontab"
+    COMMAND = "root run-parts /bot/botpresen start > /dev/null 2>&1"
+    FILENAME = "/bot/crontab"
 
     def __init__(self) -> None:
         self.date = []

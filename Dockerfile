@@ -1,15 +1,18 @@
-FROM python:3.10-slim-bullseye
+FROM python:3.10.4-slim-bullseye
 
-RUN apt-get update
-RUN apt-get install build-essential cron -y
+ARG DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install  cron binutils -y
 
-RUN mkdir -p /usr/src/bot
-WORKDIR /usr/src/bot
+RUN mkdir -p /bot
+RUN mkdir -p /tmp/bot
 
-COPY ./requirements.txt .
-RUN pip install --no-cache-dir -r ./requirements.txt
+COPY . /tmp/bot/
 
-COPY src/* .
-COPY bin/* /usr/bin/
-# CMD [ "python", "-i", "./main", "setup" ]
-# RUN crontab ./mycrontab
+RUN pip install --no-cache-dir -r /tmp/bot/requirements.txt
+RUN cd /tmp/bot/ && pyinstaller --distpath /bot /tmp/bot/main.spec && rm -rf ./build && pyinstaller --distpath /bot /tmp/bot/single.spec
+
+RUN pip uninstall -r /tmp/bot/requirements.txt -y
+RUN cd / && rm -rf /tmp/bot
+
+
+WORKDIR /bot

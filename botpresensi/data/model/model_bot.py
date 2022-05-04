@@ -19,8 +19,8 @@ URL_COURSES = "http://jti.polije.ac.id/elearning/course/index.php?categoryid=3"
 # HEADERS = {
 #     "User-Agent": ("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.87 Safari/537.36")
 # }
-SETTING_MATKUL = "/usr/src/bot/list-matkul.json"
-SETTING_USER = "/usr/src/bot/user.json"
+SETTING_MATKUL = "/bot/list-matkul.json"
+SETTING_USER = "/bot/user.json"
 ERROR = 1
 WARNING = 2
 INFO = 3

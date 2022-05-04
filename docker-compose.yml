@@ -1,12 +1,18 @@
 version: '3'
 
 services:
-  botpresensi:
-    container_name: BotPresensiJTI
-    stdin_open: true
-    tty: true
-    build:
-      context: .
-      dockerfile: Dockerfile
-    volumes: 
-      - ./src:/usr/src/bot
+    bot:
+        container_name: BotPresensiJTI
+        image: rizalachp/botpresen-jti
+        build:
+            context: .
+            dockerfile: Dockerfile
+
+        stdin_open: true
+        tty: true
+        command: /bot/botpresen setup
+
+
+
+    # volumes: 
+    #   - ./bin:/bot
